@@ -14,36 +14,35 @@
 
 ## 快速开始
 
-### 新电脑一键部署
+### 使用安装包（推荐）
 
-将整个项目文件夹拷贝到目标电脑，双击运行：
+1. 下载 `FKHL-Setup.exe`
+2. 双击运行安装程序
+3. 安装程序会自动检测 Python 环境并安装依赖
+4. 安装完成后自动创建桌面快捷方式
 
+### 手动部署
+
+**新电脑一键部署：**
 ```
 setup.bat
 ```
 
-脚本会自动完成以下步骤：
-1. 检测系统中已有的 Python（3.x），若没有则自动下载 Python 嵌入版
-2. 安装 pip
-3. 安装项目依赖（Flask、flask-cors、requests、python-hosts）
-4. 启动 Web 应用并自动打开浏览器访问 `https://127.0.0.1:5000`
-
-### 已有环境快速启动
-
+**已有环境快速启动：**
 ```
 run.bat
 ```
 
-### 手动启动
-
+**手动启动：**
 ```powershell
+# 设置环境变量
+$env:HOST_IP="127.0.0.1"
+
 # 测试模式（跳过管理员检查）
 $env:FLASK_TEST_MODE="1"
-$env:HOST_IP="127.0.0.1"
 python app.py
 
 # 生产模式（需管理员权限）
-$env:HOST_IP="127.0.0.1"
 python app.py
 ```
 
@@ -58,28 +57,25 @@ python app.py
 | `/execute?command=<CMD>` | GET | 执行系统命令，SSE 流式返回结果 |
 | `/sbhl` | GET | sbhl 页面 |
 
-## 目录结构
+## 项目结构
 
 ```
-prog/
+FKHL/
 ├── app.py              # Flask 主应用
 ├── app.spec            # PyInstaller 打包配置
-├── c.spec              # PyInstaller 打包配置（备用）
-├── cert.pem            # SSL 证书
-├── key.pem             # SSL 私钥
-├── rootCA.pem          # CA 根证书
-├── rootCA-key.pem      # CA 根证书私钥
 ├── requirements.txt    # Python 依赖清单
-├── setup.bat           # 一键安装运行脚本
-├── run.bat             # 快速启动脚本
-├── flask.bat           # Flask 环境安装脚本
-├── pack.bat            # PyInstaller 打包脚本
-├── privacy.html        # 隐私页面
+├── build.ps1           # 安装包构建脚本
+├── installer.nsi       # NSIS 安装脚本
+├── LICENSE.txt        # 许可证
 ├── templates/
-│   ├── index.html      # 主页面模板
-│   ├── execute.html    # 命令执行页面
-│   └── sbhl.html       # sbhl 页面
-└── python/             # （自动生成）Python 嵌入版
+│   ├── index.html     # 主页面模板
+│   ├── execute.html   # 命令执行页面
+│   └── sbhl.html      # sbhl 页面
+└── dist/              # 打包输出目录
+    ├── FKHL-Setup.exe  # 安装包
+    ├── FKHL.exe       # 主程序
+    ├── app.py         # 源码
+    └── templates/     # 模板目录
 ```
 
 ## 依赖
@@ -97,17 +93,28 @@ prog/
 | `HOST_IP` | hosts 映射的目标 IP | 必填 |
 | `FLASK_TEST_MODE` | 设为 `1` 跳过管理员权限检查 | `0` |
 
-## 打包为 exe
+## 构建安装包
 
-```bash
-pack.bat
+使用 `build.ps1` 脚本自动完成所有打包步骤：
+
+```powershell
+.\build.ps1
 ```
 
-或手动：
+脚本会自动：
+1. 运行 PyInstaller 打包主程序
+2. 复制项目文件到 dist 目录
+3. 检测并安装 NSIS（如果未安装）
+4. 生成 `FKHL-Setup.exe` 安装包
 
-```bash
-pyinstaller --onefile --add-data "templates;templates" --hidden-import flask app.py
-```
+## 安装程序功能
+
+`FKHL-Setup.exe` 安装包提供以下功能：
+- 自动检测 Python 环境
+- Python 未安装时弹出提示并提供下载链接
+- 自动安装项目依赖
+- 创建桌面和开始菜单快捷方式
+- 支持卸载
 
 ## Contributors
 
