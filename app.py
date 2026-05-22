@@ -10,7 +10,7 @@ from urllib.parse import urlparse,urljoin
 import sys
 import ctypes
 from python_hosts import Hosts,HostsEntry
-ip=os.getenv("HOST_IP")
+ip=os.getenv("HOST_IP","192.168.137.1")
 
 def is_admin():
     try:
@@ -121,10 +121,8 @@ def execute():
     else:
         return Response(executecmd(command),mimetype='text/event-stream')
 
-##@app.errorhandler(404)
-##def get_redirect():
-##    return redirect('http://yandex.com',code=302,Response=None)
 TEST_MODE = os.getenv("FLASK_TEST_MODE", "0") == "1"
+
 if not TEST_MODE and not is_admin():
     ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, __file__, None, 1)
     sys.exit()
@@ -132,6 +130,4 @@ if __name__ == '__main__':
     while True:
         os.system('cls')
         print('欢迎')
-        app.run(ssl_context=('cert.pem', 'key.pem'), host='127.0.0.1', port=5000,threaded=True)
-        #app.run(host='192.168.137.1', port=80)
-#bsource.weicistudy.com
+        app.run(ssl_context=('cert.pem', 'key.pem'), host=ip, port=443,threaded=True)

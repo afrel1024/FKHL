@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="referrer" content="no-referrer">
+<title>JJ</title>
+<script>
+function resizeIframe() {
+    const iframe = document.getElementById('targetFrame');
+    iframe.style.height = iframe.contentWindow.document.body.scrollHeight + 'px';
+}
+</script>
+</head>
+<br>
+<h1>真实承诺-3.0<br>“梦醒了，这不是梦”<h1>
+<h2>注意：进入此页面后记得换回HLJY网络<h2>
+<h1 style="color:cyan">Contributors：BlueGS；绿云ps；Sonder；sukhoi；金局长<h1>
+<input type="text" id="urlInput" placeholder="请输入url">
+<button onclick="loadUrl()" >加载</button>
+<iframe
+  width="100%"
+  height="600"
+  id="contentFrame">
+</iframe>
+<iframe id="targetFrame" src="/proxy?url=https://www.bing.com" width="100%" 
+        height="600" onload="resizeIframe()" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+<script>
+  function loadUrl(){
+    const url=document.getElementById("urlInput").value;
+    if(url.includes('https://') || url.includes('http://')){
+      document.getElementById('contentFrame').src=url;
+    }
+    else{
+      alert('sb');
+    }
+
+  }
+</script>
+<iframe
+  style="height:720;width:1280"
+  src="https://192.168.137.1:443/sbhl">
+</iframe>
+<input type="text" id="commandInput" placeholder="输入命令">
+<button onclick="executeCommand()">执行</button>
+<button onclick="clearOutput()">清空历史</button>
+<pre id="output" style="white-space:pre-wrap;"></pre>
+<script>
+  function executeCommand()
+  {
+    const command=document.getElementById('commandInput').value;
+    const outputElement=document.getElementById('output');
+    outputElement.textContent+="\n---command:${command}---\n";
+    const eventSource=new EventSource('/execute?command=${encodeURIComponent(command)}');
+    eventSource.onmessage=function(event){
+      outputElement.textContent+=event.data;
+    };
+    eventSource.onerror=function(){
+      eventSource.close();
+    };
+  }
+  function clearOutput(){
+    document.getElementById('output').textContent='';
+  }
+</script>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
