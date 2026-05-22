@@ -16,10 +16,10 @@
 
 ## 已测试可用网站
 
-- **网易云游戏 cg.163.com — 可用**
-- **百度搜索 www\.baidu.com — 可用**
-- **咪咕快游 migufun.com — 可用**
-- **必应 www\.bing.com —** ***不可用***
+- **网易云游戏 [cg.163.com](http://cg.163.com)** — 可用**
+- **百度搜索** **[www.baidu.com](http://www.baidu.com)** **— 可用**
+- **咪咕快游 [www.migufun.com](http://www.migufun.com)** — 可用**
+- **必应** **[www.bing.com](http://www.bing.com)** **—** ***不可用***
 
 ***
 
@@ -109,7 +109,7 @@ https://192.168.137.1:443/execute?command=ls
 FKHL/
 ├── app.py              # Flask 主应用
 ├── requirements.txt    # Python 依赖清单
-├── LICENSE.txt         # GNU General Public License v3.0 - 许可证
+├── LICENSE             # GNU General Public License v3.0 - 许可证
 ├── cert.pem            # SSL 证书
 ├── key.pem             # SSL 私钥
 ├── rootCA.pem          # 根 CA 证书，用于验证 SSL 证书的签名
