@@ -11,9 +11,9 @@ function resizeIframe() {
 </script>
 </head>
 <br>
-<h1>真实承诺-3.0<br>“梦醒了，这不是梦”<h1>
-<h2>注意：进入此页面后记得换回HLJY网络<h2>
-<h1 style="color:cyan">Contributors：BlueGS；绿云ps；Sonder；sukhoi；金局长<h1>
+<h1>真实承诺-1.0.0-Release<br>“梦醒了，这不是梦”<h1>
+<h2>注意：进入此页面后如非必要记得不要占热点，请换回HLJY网络<h2>
+<h1 style="color:cyan">Contributors：绿云ps(afrel1024，GitHub仓库运营者)；BlueGS；Sonder；sukhoi；金局长<h1>
 <input type="text" id="urlInput" placeholder="请输入url">
 <button onclick="loadUrl()" >加载</button>
 <iframe
@@ -39,26 +39,87 @@ function resizeIframe() {
   style="height:720;width:1280"
   src="https://192.168.137.1:443/sbhl">
 </iframe>
-<input type="text" id="commandInput" placeholder="输入命令">
-<button onclick="executeCommand()">执行</button>
-<button onclick="clearOutput()">清空历史</button>
+<div id="authSection">
+    <h3>身份验证 - 远程命令执行</h3>
+    <input type="text" id="usernameInput" placeholder="请输入用户名">
+    <input type="password" id="passwordInput" placeholder="请输入密码">
+    <button onclick="authenticateAndExecute()">执行命令</button>
+</div>
+<div id="commandSection" style="display:none;">
+    <h3>远程命令执行</h3>
+    <input type="text" id="commandInput" placeholder="输入命令">
+    <button onclick="executeCommand()">执行</button>
+    <button onclick="clearOutput()">清空历史</button>
+</div>
 <pre id="output" style="white-space:pre-wrap;"></pre>
 <script>
+  let authUsername = '';
+  let authPassword = '';
+  
+  function authenticateAndExecute() {
+    authUsername = document.getElementById('usernameInput').value;
+    authPassword = document.getElementById('passwordInput').value;
+    
+    if (!authUsername || !authPassword) {
+      alert('请输入用户名和密码');
+      return;
+    }
+    
+    // 验证身份并显示命令执行区域
+    document.getElementById('authSection').style.display = 'none';
+    document.getElementById('commandSection').style.display = 'block';
+  }
+  
   function executeCommand()
   {
-    const command=document.getElementById('commandInput').value;
-    const outputElement=document.getElementById('output');
-    outputElement.textContent+="\n---command:${command}---\n";
-    const eventSource=new EventSource('/execute?command=${encodeURIComponent(command)}');
-    eventSource.onmessage=function(event){
-      outputElement.textContent+=event.data;
+    const command = document.getElementById('commandInput').value;
+    const outputElement = document.getElementById('output');
+    
+    if (!command) {
+      alert('请输入命令');
+      return;
+    }
+    
+    // 创建包含Basic Auth的EventSource
+    outputElement.textContent += "\n---command:" + command + "---\n";
+    
+    // 使用XMLHttpRequest来支持Basic Auth
+    const xhr = new XMLHttpRequest();
+    const url = '/execute?command=' + encodeURIComponent(command);
+    
+    xhr.open('GET', url, true);
+    xhr.setRequestHeader('Authorization', 'Basic ' + btoa(authUsername + ':' + authPassword));
+    xhr.responseType = 'text';
+    
+    // 处理响应 - 逐行读取
+    xhr.onprogress = function() {
+      if (xhr.readyState >= 3 && xhr.responseText) {
+        const receivedText = xhr.responseText;
+        // 更新输出
+        outputElement.textContent = receivedText;
+        // 滚动到底部
+        outputElement.scrollTop = outputElement.scrollHeight;
+      }
     };
-    eventSource.onerror=function(){
-      eventSource.close();
+    
+    xhr.onload = function() {
+      if (xhr.status === 401) {
+        alert('身份验证失败，请检查用户名和密码');
+        // 显示验证界面
+        document.getElementById('authSection').style.display = 'block';
+        document.getElementById('commandSection').style.display = 'none';
+      }
     };
+    
+    xhr.onerror = function() {
+      outputElement.textContent += "\n[错误] 请求失败\n";
+    };
+    
+    xhr.send();
   }
-  function clearOutput(){
-    document.getElementById('output').textContent='';
+  
+  function clearOutput() {
+    document.getElementById('output').textContent = '';
   }
 </script>
 <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>

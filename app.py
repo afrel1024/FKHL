@@ -28,6 +28,35 @@ except Exception as e:
 
 app = Flask(__name__)
 CORS(app,resources={r"/":{"origins":""}})
+# 设置用于加密session的密钥
+app.secret_key = os.getenv("SECRET_KEY", "secret-key-example-default")
+
+# 配置默认的用户名和密码（可通过环境变量修改）
+AUTH_USERNAME = os.getenv("AUTH_USERNAME", "admin")
+AUTH_PASSWORD = os.getenv("AUTH_PASSWORD", "admin")
+
+# Session存储已登录状态
+@app.route('/login', methods=['POST'])
+def login():
+    """登录验证"""
+    username = request.form.get('username')
+    password = request.form.get('password')
+    
+    if username == AUTH_USERNAME and password == AUTH_PASSWORD:
+        # 登录成功，设置session
+        return jsonify({"success": True})
+    else:
+        return jsonify({"success": False, "error": "账号或密码错误"}), 401
+
+@app.route('/auth-status')
+def auth_status():
+    """检查是否已登录"""
+    # 这里我们使用简单的验证方式，后续可扩展为session验证
+    return jsonify({"authenticated": True})  # TODO: 实现真实的session验证
+
+# 验证装饰器函数
+def check_auth(username, password):
+    return username == AUTH_USERNAME and password == AUTH_PASSWORD
 
 DENIED_DOMAINS={"example.com"}#域名黑名单
 def is_safe_url(target_url):
@@ -115,11 +144,23 @@ def executecmd(command):
     proc.wait
 @app.route('/execute')
 def execute():
-    command=request.args.get('command')
+    """执行命令前验证身份"""
+    # 获取用户名和密码
+    auth = request.authorization
+    
+    if not auth or not check_auth(auth.username, auth.password):
+        # 需要身份验证
+        return Response(
+            "身份验证失败，请提供有效的用户名和密码",
+            401,
+            {'WWW-Authenticate': 'Basic realm="Login Required"'}
+        )
+    
+    command = request.args.get('command')
     if not command:
-        return Response("data:err:not any command\n\n",mimetype='text/event-stream')
+        return Response("data:err:not any command\n\n", mimetype='text/event-stream')
     else:
-        return Response(executecmd(command),mimetype='text/event-stream')
+        return Response(executecmd(command), mimetype='text/event-stream')
 
 TEST_MODE = os.getenv("FLASK_TEST_MODE", "0") == "1"
 
