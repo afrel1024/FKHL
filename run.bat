@@ -11,5 +11,5 @@ if exist "%~dp0python\python.exe" (
 set "HOST_IP=127.0.0.1"
 set "FLASK_TEST_MODE=1"
 cls
-%PY% app.py
+"C:\Users\seewo\AppData\Local\Programs\Python\Python313\python.exe" "H:\Udisk\FKHL\FKHL-Release1.1.2\app.py"
 pause

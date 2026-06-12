@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>搜索结果</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .result-item { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
+        .result-title { font-size: 18px; font-weight: bold; color: #1a0dab; }
+        .result-url { color: #006621; font-size: 14px; word-break: break-all; }
+        .result-snippet { color: #545454; font-size: 14px; }
+        a { text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div id="resultsContainer">
+        <p>搜索结果将显示在这里...</p>
+    </div>
+    <script>
+        // 获取URL参数
+        function getParameterByName(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+        
+        // 执行搜索
+        async function performSearch() {
+            const query = getParameterByName('query');
+            const container = document.getElementById('resultsContainer');
+            
+            if (!query) {
+                container.innerHTML = '<p style="color: red;">没有搜索关键词</p>';
+                return;
+            }
+            
+            container.innerHTML = '<p>正在搜索中...</p>';
+            
+            try {
+                const response = await fetch('/search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: query })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    container.innerHTML = `<p style="color: red;">错误: ${data.error}</p>`;
+                } else {
+                    // 格式化搜索结果，确保URL可点击
+                    let formattedResults = data.results;
+                    
+                    // 将纯文本URL转换为可点击链接
+                    formattedResults = formattedResults.replace(/(https?:\/\/[^\s]+)/g, 
+                        '<a href="$1" target="_blank" rel="noopener noreferrer" class="result-url">$1</a>');
+                    
+                    // 替换换行符为HTML换行
+                    formattedResults = formattedResults.replace(/\n/g, '<br>');
+                    
+                    container.innerHTML = formattedResults;
+                }
+            } catch (error) {
+                container.innerHTML = `<p style="color: red;">搜索失败: ${error.message}</p>`;
+            }
+        }
+        
+        // 页面加载时执行搜索
+        window.onload = performSearch;
+    </script>
+</body>
+</html>

@@ -11,34 +11,78 @@ function resizeIframe() {
 </script>
 </head>
 <br>
-<h1>真实承诺-1.0.0-Release<br>“梦醒了，这不是梦”<h1>
-<h2>注意：进入此页面后如非必要记得不要占热点，请换回HLJY网络<h2>
-<h1 style="color:cyan">Contributors：绿云ps(afrel1024，GitHub仓库运营者)；BlueGS；Sonder；sukhoi；金局长<h1>
+<h1>真实承诺-1.1.3-Release<br>“梦醒了，这不是梦”</h1>
+<h2>注意：进入此页面后如非必要记得不要占热点，请换回HLJY网络</h2>
+<h1 style="color:cyan">Contributors：绿云ps(afrel1024，GitHub仓库运营者)；BlueGS；Sonder；sukhoi；金局长</h1>
+
+<!-- 搜索引擎功能 -->
+<h3>搜索引擎</h3>
+<input type="text" id="searchInput" placeholder="请输入搜索关键词" style="width: 400px;">
+<button onclick="performSearch()">搜索</button>
+<iframe id="searchFrame" src="" width="100%" height="400" 
+        style="margin-top: 10px; border: 1px solid #ccc;" 
+        sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+
+<br>
+
 <input type="text" id="urlInput" placeholder="请输入url">
+<input type="text" id="VIPpasswd" placeholder="请输入VIP口令">
 <button onclick="loadUrl()" >加载</button>
-<iframe
-  width="100%"
-  height="600"
-  id="contentFrame">
-</iframe>
-<iframe id="targetFrame" src="/proxy?url=https://www.bing.com" width="100%" 
+<iframe id="targetFrame" src="https://fanyi.baidu.com" width="100%" 
         height="600" onload="resizeIframe()" sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
 <script>
   function loadUrl(){
     const url=document.getElementById("urlInput").value;
-    if(url.includes('https://') || url.includes('http://')){
-      document.getElementById('contentFrame').src=url;
+    const VIPpasswd=document.getElementById("VIPpasswd").value;
+    if((url.includes('https://') || url.includes('http://')) && VIPpasswd=='admin'){
+      document.getElementById('targetFrame').src='/proxy?url='+url;
+    }
+    else if(url.includes('https://') || url.includes('http://')){
+      document.getElementById('targetFrame').src=url;
     }
     else{
       alert('sb');
     }
 
   }
+  
+  function performSearch() {
+    const query = document.getElementById('searchInput').value;
+    const searchFrame = document.getElementById('searchFrame');
+    
+    if (!query.trim()) {
+      alert('请输入搜索关键词');
+      return;
+    }
+    
+    // 将搜索关键词传递给 iframe 页面
+    searchFrame.src = '/search-results?query=' + encodeURIComponent(query);
+  }
 </script>
-<iframe
-  style="height:720;width:1280"
-  src="https://192.168.137.1:443/sbhl">
-</iframe>
+
+<input type="text" id="filenameInput" placeholder="example.txt">
+<button id="submitBtn">加载txt</button>
+<iframe id="txtFrame" src="" width="100%" height="400" 
+        style="margin-top: 10px; border: 1px solid #ccc;" 
+        sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+<script>
+  const submitBtn = document.getElementById('submitBtn');
+  const Input = document.getElementById('filenameInput');
+  const Frame = document.getElementById('txtFrame');
+  
+  submitBtn.addEventListener('click', function() {
+    const filename = Input.value.trim();
+    if (filename) {
+      Frame.src = `/txt?filename=${encodeURIComponent(filename)}`;
+    }
+    else{
+      Frame.src = '';
+    }
+  });
+</script>
+
+
+
 <div id="authSection">
     <h3>身份验证 - 远程命令执行</h3>
     <input type="text" id="usernameInput" placeholder="请输入用户名">

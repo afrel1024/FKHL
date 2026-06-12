@@ -1,7 +1,7 @@
 from concurrent.futures import thread
 import subprocess
 from tokenize import Comment
-from flask import Flask, Response, render_template,request,make_response,jsonify
+from flask import Flask, Response, render_template,request,make_response,jsonify, send_from_directory
 import os
 from flask_cors import CORS
 import time
@@ -141,7 +141,7 @@ def executecmd(command):
     for line in iter(proc.stdout.readline,''):
         yield f"data:{line}\n\n"
     proc.stdout.close()
-    proc.wait
+    proc.wait()
 @app.route('/execute')
 def execute():
     """执行命令前验证身份"""
@@ -162,6 +162,69 @@ def execute():
     else:
         return Response(executecmd(command), mimetype='text/event-stream')
 
+# DeepSeek API配置
+DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")
+DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
+
+@app.route('/search-results')
+def search_results():
+    """渲染搜索结果页面，用于在iframe中显示"""
+    return render_template('search_results.html')
+
+@app.route('/search', methods=['POST'])
+def search():
+    """
+    调用DeepSeek V4 Flash API进行搜索
+    返回搜索结果，包含完整的URL显示
+    """
+    query = request.json.get('query')
+    if not query:
+        return jsonify({"error": "Missing 'query' parameter"}), 400
+    
+    if not DEEPSEEK_API_KEY:
+        return jsonify({"error": "DeepSeek API key not configured"}), 500
+    
+    try:
+        headers = {
+            "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        
+        # 构建搜索请求，要求返回包含URL的搜索结果
+        data = {
+            "model": "deepseek-chat",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "你是一个搜索引擎助手。请根据用户的查询进行搜索，并返回详细的搜索结果。每个搜索结果严格按照格式展示：标题；摘要；完整的URL链接。请用清晰的格式展示结果。"
+                },
+                {
+                    "role": "user",
+                    "content": f"请搜索以下内容并返回结果：{query}\n\n请确保每个搜索结果都包含完整的URL。"
+                }
+            ],
+            "temperature": 0.0,
+            "max_tokens": 2000
+        }
+        
+        response = requests.post(DEEPSEEK_API_URL, headers=headers, json=data, verify=False)
+        response.raise_for_status()
+        
+        result = response.json()
+        search_results = result.get('choices', [])[0].get('message', {}).get('content', '')
+        
+        return jsonify({"results": search_results})
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/txt')
+def txt():
+    file_name = request.args.get('filename')
+    file_path = os.path.join('txts', file_name)
+    return send_from_directory('txts', file_name,mimetype='text/plain')
+
+
 TEST_MODE = os.getenv("FLASK_TEST_MODE", "0") == "1"
 
 if not TEST_MODE and not is_admin():
@@ -171,4 +234,6 @@ if __name__ == '__main__':
     while True:
         os.system('cls')
         print('欢迎')
-        app.run(ssl_context=('cert.pem', 'key.pem'), host=ip, port=443,threaded=True)
+        cert_path = os.path.join(os.path.dirname(__file__), 'cert.pem')
+        key_path = os.path.join(os.path.dirname(__file__), 'key.pem')
+        app.run(ssl_context=(cert_path, key_path), host=ip, port=443, threaded=True)
